@@ -26,9 +26,37 @@ class CreateBook extends Component {
         });        
     }
 
+    handleResest(e) {
+        e.preventDefault();
+        this.setState({
+            title: '',
+            author: '',
+            year: ''
+        });
+    }
+
+    componentWillMount() {
+        const props = this.props;
+
+        if(props.location && props.location.state) {
+            const book = props.location.state.book;
+
+            this.setState({
+                id: book.id,
+                title: book.title,
+                author: book.author,
+                year: book.year
+            });
+        }
+    }
+
     render() {
         return (
             <div className="create-book">
+                {this.props.error ? 
+                    <div className="alert alert-danger" role="alert">
+                        {this.props.error.message}
+                    </div> : ''}
                 <form onSubmit={this.handleSubmit.bind(this)}>
                     <div className="form-group">
                         <input 
@@ -36,6 +64,7 @@ class CreateBook extends Component {
                             className="form-control" 
                             name="title" 
                             placeholder="Enter title"
+                            value={this.state.title}
                             onChange={this.handleOnValueChange.bind(this)}
                         />
                     </div>
@@ -45,6 +74,7 @@ class CreateBook extends Component {
                             className="form-control" 
                             name="author" 
                             placeholder="Enter author"
+                            value={this.state.author}
                             onChange={this.handleOnValueChange.bind(this)}
                         />
                     </div>
@@ -54,6 +84,7 @@ class CreateBook extends Component {
                             className="form-control" 
                             name="year" 
                             placeholder="Enter year"
+                            value={this.state.year}
                             onChange={this.handleOnValueChange.bind(this)}
                         />
                     </div>
@@ -61,7 +92,8 @@ class CreateBook extends Component {
                         <button type="submit" className="btn btn-primary">
                             Add
                         </button>
-                        <button type="button" className="btn btn-default">
+                        <button type="button" className="btn btn-default"
+                            onClick={this.handleResest.bind(this)}>
                             Cancel
                         </button>
                     </div>
@@ -73,8 +105,8 @@ class CreateBook extends Component {
 }
 
 const mapStateToProps = (state) => {
-    return {
-
+    return {        
+        error: state.booksData.error
     };
 };
 

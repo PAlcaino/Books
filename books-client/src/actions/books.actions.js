@@ -13,7 +13,6 @@ import {
     FETCH_BOOK_SUCCESS
 } from './types';
 
-import {books} from '../data';
 import axios from 'axios';
 import {history} from '../index';
 
@@ -27,41 +26,150 @@ export const createBookSuccess = (data) => {
     }
 };
 
+export const createBookError = (data) => {
+    return {
+        type:ADD_BOOK_ERROR,
+        payload: data
+    }
+};
+
 export const createBook = (book) => {
-    const data = {
-        title: book.title,
-        author: book.author,
-        year: book.year
+
+    if(book.id) {
+        const data = {
+            id: book.id,
+            title: book.title,
+            author: book.author,
+            year: book.year
+        };
+
+        return (dispatch) => {
+            dispatch(editBook(data));
+        }
+    } else {
+        const data = {
+            title: book.title,
+            author: book.author,
+            year: book.year
+        };
+    
+        return (dispatch) => {
+            return axios.post(url, data)
+            .then(response => {
+                const id = response.data;
+    
+                axios.get(`${url}/${id}`)
+                .then(response => {
+                    const data = response.data;
+    
+                    const normalizedData = {
+                        id: data.ID,
+                        title: data.Title,
+                        author: data.Author,
+                        year: data.Year
+                    };
+    
+                    dispatch(createBookSuccess(normalizedData));
+                    history.push('/');
+                }).catch(error => {
+                    const errorPayload = {};
+    
+                    errorPayload['message'] = error.response.data.Message;
+                    errorPayload['status'] = error.response.status;
+    
+                    dispatch(createBookError(errorPayload));
+                });
+    
+            }).catch(error => {
+                const errorPayload = {};
+    
+                errorPayload['message'] = error.response.data.Message;
+                errorPayload['status'] = error.response.status;
+    
+                dispatch(createBookError(errorPayload));
+            });
+        }
+    }    
+}
+
+//EDIT
+export const editBookError  = (data) => {
+    return {
+        type: EDIT_BOOK_ERROR,
+        payload: data
     };
+};
+
+export const editBookSuccess = (data) => {
+    return {
+        type: EDIT_BOOK_SUCCESS,
+        payload: data
+    };
+};
+
+export const editBook = (data) => {
+    const id = data.id;
 
     return (dispatch) => {
-        return axios.post(url, data)
-        .then(response => {
-            const id = response.data;
-
-            axios.get(`${url}/${id}`)
+        return axios.put(url, data)
+        .then(() => {
+            return axios.get(`${url}/${id}`)
             .then(response => {
-                const data = response.data;
-
-                const normalizedData = {
-                    id: data.ID,
-                    title: data.Title,
-                    author: data.Author,
-                    year: data.Year
-                };
-
-                dispatch(createBookSuccess(normalizedData));
+                dispatch(editBookSuccess(response.data));
                 history.push('/');
             }).catch(error => {
-                console.log(error);
-            });
+                const errorPayload = {};
+    
+                errorPayload['message'] = error.response.data.Message;
+                errorPayload['status'] = error.response.status;
 
-        }).catch(error => {
-            console.log(error);
+                dispatch(editBookError(errorPayload));
+            });
+        }).catch((error) => {
+            const errorPayload = {};
+    
+            errorPayload['message'] = error.response.data.Message;
+            errorPayload['status'] = error.response.status;
+
+            dispatch(editBookError(errorPayload));
         });
     }
 }
 
+//DELETE
+export const deleteBookSuccess = (id) => {
+    return {
+        type: DELETE_BOOK_SUCCESS,
+        payload: {
+            id: id
+        }
+    }
+};
+
+export const deleteBookError = (data) => {
+    return {
+        type: DELETE_BOOK_ERROR,
+        payload: data
+    }
+}
+
+export const deleteBook = (id) => {
+    return (dispatch) => {
+        return axios.delete(`${url}/${id}`)
+            .then(() => {
+                dispatch(deleteBookSuccess(id));
+            }).catch((error) => {
+                const errorPayload = {};
+    
+                errorPayload['message'] = error.response.data.Message;
+                errorPayload['status'] = error.response.status;
+
+                dispatch(deleteBookError(errorPayload));
+            });
+    };
+}
+
+//FETCH
 export const fetchBookSuccess = (data) => {
     return {
         type: FETCH_BOOK_SUCCESS,

@@ -34,7 +34,11 @@ class App extends Component {
           <Switch>
             <Route path="/" exact component={() => <Books/>}/>
             <Route path="/create" exact component={() => <CreateBook/>}/>
-            <Route path="/edit/:id" exact component={() => <CreateBook/>}/>
+            <Route 
+              path="/edit/:id" 
+              exact 
+              book={this.state.book}
+              component={(props) => <CreateBook {...props}/>}/>
           </Switch>
         </div>
       </Router>

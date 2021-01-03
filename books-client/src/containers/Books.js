@@ -1,11 +1,26 @@
 import React, {Component} from 'react';
-import {books} from '../data';
 import Book from '../components/Book';
 import {connect} from 'react-redux';
+import {fetchBooks, fetchBooksError} from '../actions/books.actions';
+import {history} from '../index';
+import {deleteBook} from '../actions/books.actions';
 
 class Books extends Component {
     constructor(props) {
         super (props);
+    }
+
+    componentWillMount() {
+        this.props.onFetch();
+    }
+
+    handleEdit(book) {
+        history.push({
+            pathname: `/edit/${book.id}`,
+            state: {
+                book: book,
+            }
+        });
     }
 
     render() {
@@ -37,7 +52,11 @@ class Books extends Component {
                             {
                                 this.props.books.map(book => {
                                     return (
-                                        <Book key={book.id} book={book}/>
+                                        <Book 
+                                            key={book.id} 
+                                            book={book}
+                                            onDelete={this.props.onDelete}
+                                            onEdit={this.handleEdit.bind(this)}/>
                                     )
                                 })
                             }
@@ -56,4 +75,17 @@ const mapStateToProps = (state) => {
         error: state.booksData.error || null,
     };
 };
-export default connect(mapStateToProps, null)(Books);
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onFetch: () => {
+            dispatch(fetchBooks());
+        },
+
+        onDelete: (id) => {
+            dispatch(deleteBook(id));
+        }
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Books);
